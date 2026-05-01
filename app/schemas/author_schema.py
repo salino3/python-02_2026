@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
-from .book import Book
+from .book_schema import Book
 
 class AuthorBase(BaseModel):
     name: str

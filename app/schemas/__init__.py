@@ -1,2 +1,2 @@
-from .author import Author, AuthorCreate, AuthorBase
-from .book import Book, BookCreate, BookBase
+from .author_schema import Author, AuthorCreate, AuthorBase
+from .book_schema import Book, BookCreate, BookBase

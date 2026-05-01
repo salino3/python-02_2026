@@ -1,3 +1,3 @@
 from app.database import Base
-from .author import Author
-from .book import Book
+from .author_model import Author
+from .book_model import Book
