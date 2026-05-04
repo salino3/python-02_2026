@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from app.database import engine
 from app import models
 from app.routers import author_router, book_router
+# uvicorn app.main:app --reload  
+# Example   
+# python -m sqlacodegen  postgresql://USER_NAME:PASSWORD_VALUE@localhost:PORT_VALUE/DATABASE_NAME > temp_models.py
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)

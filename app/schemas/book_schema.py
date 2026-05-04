@@ -1,9 +1,11 @@
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 class BookBase(BaseModel):
     title: str
-    price: int
-    author_id: int
+    price: Optional[int] = None
+    pages: Optional[int] = None  
+    author_id: Optional[int] = None
 
 class BookCreate(BookBase):
     pass 
