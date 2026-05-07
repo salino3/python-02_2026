@@ -7,9 +7,11 @@ class BookBase(BaseModel):
     pages: Optional[int] = None  
     author_id: Optional[int] = None
 
+# Inheritance from BookBase
 class BookCreate(BookBase):
     pass 
 
+# Inheritance from BookBase
 class Book(BookBase):
     id: int
     
