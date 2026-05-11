@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import update
+from sqlalchemy.exc import SQLAlchemyError
 from app import models, schemas
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
@@ -32,30 +34,56 @@ def get_author_by_id(db: Session, author_id: str):
 
 # 
 def update_author(db: Session, author_id: str, author: schemas.AuthorUpdate):
-   
     try:
-        numeric_id = int(author_id)
+        numeric_url_id = int(author_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="ID must be a valid number")
+        raise HTTPException(status_code=400, detail="ID must be a valid integer")
     
-    
-    db_author = db.query(models.Author).filter(models.Author.id == numeric_id).first()
-    if not db_author:
-        raise HTTPException(status_code=404, detail="Author not found")
-    
-    # Extract the update data (exclude fields that weren't provided)
+    if author.id != numeric_url_id:
+        raise HTTPException(
+            status_code=400, 
+            detail=(
+                f"Mismatched IDs. The URL specifies ID {numeric_url_id}, "
+                f"but the request body specifies ID {author.id}. "
+                f"These must match."
+            )
+        )
+
     update_data = author.model_dump(exclude_unset=True)
-    
-    # 4. Apply the updates dynamically to the database model
-    for key, value in update_data.items():
-        setattr(db_author, key, value)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    # removing "id" prevents unnecessary database constraint checks.
+    update_data.pop("id")
     
     try:
-        db.commit()
-        db.refresh(db_author)  # Refresh to get updated fields and relationships (like books)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Database update failed")
+        # 1. Build the UPDATE statement with RETURNING
+        stmt = (
+            update(models.Author)
+            .where(models.Author.id == numeric_url_id)
+            .values(**update_data)
+            .returning(models.Author)  # <-- Postgres will return the updated row
+        )
         
-    return db_author
+        # 2. Execute and grab the returned row directly
+        result = db.execute(stmt)
+        updated_author = result.scalars().first()   
+        
+        # If nothing was returned, the author didn't exist
+        if not updated_author:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Author update failed. ID {numeric_url_id} does not exist."
+            )
+        
+        db.commit()
+        return updated_author  # Return the object Postgres gave us
 
+    except HTTPException:
+        raise
+    except SQLAlchemyError as db_err:
+        db.rollback()
+        error_detail = str(db_err.orig) if hasattr(db_err, "orig") else str(db_err)
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Database rejected the update. Reason: {error_detail}"
+        )

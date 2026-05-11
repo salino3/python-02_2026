@@ -9,6 +9,11 @@ class AuthorBase(BaseModel):
 class AuthorCreate(AuthorBase):
     pass
 
+class AuthorUpdate(BaseModel):
+    id: int
+    name: Optional[str] = None
+    bio: Optional[str] = None
+
 class Author(AuthorBase):
     id: int
     books: List[Book] = [] 
