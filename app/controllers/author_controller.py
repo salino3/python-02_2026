@@ -29,3 +29,33 @@ def get_author_by_id(db: Session, author_id: str):
         raise HTTPException(status_code=404, detail="Author not found")
     
     return author
+
+# 
+def update_author(db: Session, author_id: str, author: schemas.AuthorUpdate):
+   
+    try:
+        numeric_id = int(author_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID must be a valid number")
+    
+    
+    db_author = db.query(models.Author).filter(models.Author.id == numeric_id).first()
+    if not db_author:
+        raise HTTPException(status_code=404, detail="Author not found")
+    
+    # Extract the update data (exclude fields that weren't provided)
+    update_data = author.model_dump(exclude_unset=True)
+    
+    # 4. Apply the updates dynamically to the database model
+    for key, value in update_data.items():
+        setattr(db_author, key, value)
+    
+    try:
+        db.commit()
+        db.refresh(db_author)  # Refresh to get updated fields and relationships (like books)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Database update failed")
+        
+    return db_author
+
