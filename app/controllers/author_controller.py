@@ -34,6 +34,13 @@ def get_author_by_id(db: Session, author_id: str):
 
 # 
 def update_author(db: Session, author_id: str, author: schemas.AuthorUpdate):
+
+    if not author.id:
+        raise HTTPException(status_code=400, detail="ID in the body query is required")
+    
+    if not author.name and not author.bio:
+        raise HTTPException(status_code=400, detail="In the body query there is not 'name' nor 'bio' for updating the author")
+
     try:
         numeric_url_id = int(author_id)
     except ValueError:
