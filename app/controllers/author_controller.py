@@ -37,8 +37,10 @@ def update_author(db: Session, author_id: str, author: schemas.AuthorUpdate):
 
     if not author.id:
         raise HTTPException(status_code=400, detail="ID in the body query is required")
+    elif not isinstance(author.id, int):
+        raise HTTPException(status_code=400, detail="ID must be an integer")
     
-    if not author.name and not author.bio:
+    if not author.name.strip() and not author.bio.strip():
         raise HTTPException(status_code=400, detail="In the body query there is not 'name' nor 'bio' for updating the author")
 
     try:

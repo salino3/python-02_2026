@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from .book_schema import Book
 
@@ -10,7 +10,7 @@ class AuthorCreate(AuthorBase):
     pass
 
 class AuthorUpdate(BaseModel):
-    id: int
+    id: int = Field(strict=True)
     name: Optional[str] = None
     bio: Optional[str] = None
 
