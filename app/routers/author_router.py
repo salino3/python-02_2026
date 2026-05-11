@@ -20,3 +20,8 @@ def list_authors(db: Session = Depends(get_db)):
 @router.get("/{author_id}", response_model=schemas.Author, status_code=200)
 def get_author_by_id(author_id: str, db: Session = Depends(get_db)):
     return controllers.get_author_by_id(db=db, author_id=author_id)
+
+@router.put("/{author_id}", response_model=schemas.Author, status_code=200 )
+def update_author( author_id: str, author: schemas.Author,  db: Session = Depends(get_db)):
+    return controllers.update_author(db=db,  author_id=author_id, author=author )
+
