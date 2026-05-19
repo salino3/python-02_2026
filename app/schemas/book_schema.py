@@ -11,6 +11,12 @@ class BookBase(BaseModel):
 class BookCreate(BookBase):
     pass 
 
+class BookUpdate(BaseModel):
+    title: Optional[str] = None
+    price: Optional[int] = None
+    pages: Optional[int] = None
+    author_id: Optional[int] = None
+
 # Inheritance from BookBase
 class Book(BookBase):
     id: int

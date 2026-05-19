@@ -21,5 +21,7 @@ def list_books(db: Session = Depends(get_db)):
 def get_book_by_id(book_id: str, db: Session = Depends(get_db)):
     return controllers.get_book_by_id(db=db, book_id=book_id)
 
- 
+@router.put("/{book_id}", response_model=schemas.Book, status_code=200)
+def update_book(book_id: str, book: schemas.BookUpdate, db: Session = Depends(get_db)):
+    return controllers.update_book(db=db, book_id=book_id, book_update=book)
  
