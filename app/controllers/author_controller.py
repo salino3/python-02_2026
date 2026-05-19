@@ -96,3 +96,25 @@ def update_author(db: Session, author_id: str, author: schemas.AuthorUpdate):
             status_code=400, 
             detail=f"Database rejected the update. Reason: {error_detail}"
         )
+    
+
+    #
+def delete_author(db: Session, author_id: str):
+    # 1. Validate that the URL ID can be converted to an integer
+    try:
+        numeric_id = int(author_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID must be a valid number")
+    
+    # 2. Fetch the author from the database
+    author = db.query(models.Author).filter(models.Author.id == numeric_id).first()
+    
+    # 3. If author does not exist, raise 404
+    if not author:
+        raise HTTPException(status_code=404, detail="Author not found")
+    
+    # 4. Delete the author record (Cascade will handle the books)
+    db.delete(author)
+    db.commit()
+    
+    return {"message": f"Author with ID {numeric_id} and all their books have been successfully deleted"} 
