@@ -28,3 +28,11 @@ def update_author( author_id: str, author: schemas.AuthorUpdate,  db: Session = 
 @router.delete("/{author_id}", status_code=200)
 def delete_author(author_id: str, db: Session = Depends(get_db)):
     return controllers.author_controller.delete_author(db=db, author_id=author_id)
+
+@router.delete("/{author_id}/books/{book_id}", status_code=200)
+def delete_author_book(author_id: str, book_id: str, db: Session = Depends(get_db)):
+    return controllers.author_controller.delete_author_book(
+        db=db, 
+        author_id=author_id, 
+        book_id=book_id
+    )

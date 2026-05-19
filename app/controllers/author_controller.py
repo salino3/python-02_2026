@@ -98,7 +98,7 @@ def update_author(db: Session, author_id: str, author: schemas.AuthorUpdate):
         )
     
 
-    #
+ #
 def delete_author(db: Session, author_id: str):
     # 1. Validate that the URL ID can be converted to an integer
     try:
@@ -118,3 +118,36 @@ def delete_author(db: Session, author_id: str):
     db.commit()
     
     return {"message": f"Author with ID {numeric_id} and all their books have been successfully deleted"} 
+
+#
+def delete_author_book(db: Session, author_id: str, book_id: str):
+    # 1. Validate both IDs are integers
+    try:
+        numeric_author_id = int(author_id)
+        numeric_book_id = int(book_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Both Author ID and Book ID must be valid integers")
+        
+    # 2. Check if the author actually exists first
+    author_exists = db.query(models.Author).filter(models.Author.id == numeric_author_id).first()
+    if not author_exists:
+        raise HTTPException(status_code=404, detail="Author not found")
+        
+    # 3. Look for the specific book belonging to this specific author
+    book = db.query(models.Book).filter(
+        models.Book.id == numeric_book_id,
+        models.Book.author_id == numeric_author_id
+    ).first()
+    
+    # 4. If the book doesn't exist or belongs to someone else, raise 404
+    if not book:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Book with ID {numeric_book_id} not found for Author {numeric_author_id}"
+        )
+        
+    # 5. Delete the book
+    db.delete(book)
+    db.commit()
+    
+    return {"message": f"Book {numeric_book_id} successfully removed from Author {numeric_author_id}"}
