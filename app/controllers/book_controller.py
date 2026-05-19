@@ -42,7 +42,6 @@ def get_book_by_id(db: Session, book_id: str):
     return book
 
 #
- 
 def update_book(db: Session, book_id: str, book_update: schemas.BookUpdate):
     try:
         numeric_id = int(book_id)
@@ -76,3 +75,25 @@ def update_book(db: Session, book_id: str, book_update: schemas.BookUpdate):
     db.commit()
     db.refresh(db_book)
     return db_book
+
+#
+def get_author_by_book_id(db: Session, book_id: str):
+    # 1. Validate URL ID format
+    try:
+        numeric_id = int(book_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Book ID must be a valid number")
+
+    # 2. Find the book and verify it exists
+    db_book = db.query(models.Book).filter(models.Book.id == numeric_id).first()
+    if not db_book:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    # 3. Find the author associated with this book
+    author = db.query(models.Author).filter(models.Author.id == db_book.author_id).first()
+    
+    # Safety check: in case a book somehow has an invalid author_id or null
+    if not author:
+        raise HTTPException(status_code=404, detail="Author not found for this book")
+
+    return author

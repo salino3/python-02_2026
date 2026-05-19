@@ -25,3 +25,7 @@ def get_book_by_id(book_id: str, db: Session = Depends(get_db)):
 def update_book(book_id: str, book: schemas.BookUpdate, db: Session = Depends(get_db)):
     return controllers.update_book(db=db, book_id=book_id, book_update=book)
  
+# Use schemas.Author because it returns the full author data profile
+@router.get("/{book_id}/author", response_model=schemas.Author, status_code=200)
+def get_author_by_book_id(book_id: str, db: Session = Depends(get_db)):
+    return controllers.get_author_by_book_id(db=db, book_id=book_id)
