@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from app.database import engine
+from fastapi.middleware.cors import CORSMiddleware
+import os
 from app import models
 from app.routers import author_router, book_router
 # uvicorn app.main:app --reload  
@@ -10,6 +12,21 @@ from app.routers import author_router, book_router
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Library Management System")
+
+FRONT_PORT = os.getenv("FRONT_PORT")
+
+origins = [
+    FRONT_PORT,
+ ]
+
+#  Add the middleware to your FastAPI application instance
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,            # Allows requests from your specific frontend URL
+    allow_credentials=True,           # Allows cookies/authentication headers if needed later
+    allow_methods=["*"],              # Allows all standard HTTP methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],              # Allows all custom/standard HTTP headers
+)
 
 # Include routers
 app.include_router(author_router.router)
