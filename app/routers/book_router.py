@@ -29,3 +29,7 @@ def update_book(book_id: str, book: schemas.BookUpdate, db: Session = Depends(ge
 @router.get("/{book_id}/author", response_model=schemas.Author, status_code=200)
 def get_author_by_book_id(book_id: str, db: Session = Depends(get_db)):
     return controllers.get_author_by_book_id(db=db, book_id=book_id)
+
+@router.post("/search", response_model=schemas.BookSearchResponse, status_code=200)
+def search_books(filters: schemas.BookSearchRequest, db: Session = Depends(get_db)):
+    return controllers.search_books(db=db, filters=filters)

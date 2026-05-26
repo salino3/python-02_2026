@@ -36,3 +36,7 @@ def delete_author_book(author_id: str, book_id: str, db: Session = Depends(get_d
         author_id=author_id, 
         book_id=book_id
     )
+
+@router.post("/search", response_model=schemas.AuthorSearchResponse, status_code=200)
+def search_authors(filters: schemas.AuthorSearchRequest, db: Session = Depends(get_db)):
+    return controllers.search_authors(db=db, filters=filters)

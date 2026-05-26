@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app import models, schemas
 from fastapi import HTTPException
@@ -97,3 +98,27 @@ def get_author_by_book_id(db: Session, book_id: str):
         raise HTTPException(status_code=404, detail="Author not found for this book")
 
     return author
+
+#
+def search_books(db: Session, filters: schemas.BookSearchRequest):
+    # 1. Start a base query pointing to the Books table
+    query = db.query(models.Book)
+
+    # 2. Apply filtering
+    if filters.title:
+        clean_title = filters.title.strip().lower()
+        if clean_title:
+            query = query.filter(func.lower(models.Book.title).like(f"%{clean_title}%"))
+
+    # 3. CRITICAL: Get total match count BEFORE applying offset/limit
+    total_matches = query.count()
+
+    # 4. Apply pagination limits to retrieve records slice
+    paginated_results = query.offset(filters.offset).limit(filters.limit).all()
+    
+    # 5. Return the expected dictionary structure
+    return {
+        "total": total_matches,
+        "results": paginated_results
+    }
+    

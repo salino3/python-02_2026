@@ -19,3 +19,20 @@ class Author(AuthorBase):
     books: List[Book] = [] 
 
     model_config = ConfigDict(from_attributes=True)
+
+class AuthorSearchRequest(BaseModel):
+    name: Optional[str] = None
+    limit: int = Field(default=10, ge=1, le=10) # Max 10 rows
+    offset: int = Field(default=0, ge=0)
+
+class AuthorWithoutBooks(BaseModel):
+    id: int
+    name: str
+    bio: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+# Response Schema Wrapper
+class AuthorSearchResponse(BaseModel):
+    total: int
+    results: List[AuthorWithoutBooks]
