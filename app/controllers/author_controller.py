@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy import update
 from sqlalchemy.exc import SQLAlchemyError
@@ -151,3 +152,27 @@ def delete_author_book(db: Session, author_id: str, book_id: str):
     db.commit()
     
     return {"message": f"Book {numeric_book_id} successfully removed from Author {numeric_author_id}"}
+
+#
+def search_authors(db: Session, filters: schemas.AuthorSearchRequest):
+    # 1. Start mapping statement query targeting Authors table
+    query = db.query(models.Author)
+
+    # 2. Extract and check name search parameters
+    if filters.name:
+        clean_name = filters.name.strip().lower()
+        if clean_name:
+            # SQL operation: WHERE LOWER(authors.name) LIKE '%search_term%'
+            query = query.filter(func.lower(models.Author.name).like(f"%{clean_name}%"))
+
+    # 3. Cache total search matches before executing pagination slices
+    total_matches = query.count()
+
+    # 4. Extract target pagination index block
+    paginated_results = query.offset(filters.offset).limit(filters.limit).all()
+
+    # 5. Build and pass structured data payload mapping dictionary
+    return {
+        "total": total_matches,
+        "results": paginated_results
+    }
