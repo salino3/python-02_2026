@@ -8,6 +8,10 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 def create_author(db: Session, author: schemas.AuthorCreate):
+    if not (author.name):
+      raise HTTPException(status_code=400, detail="Name query is required")
+
+
     db_author = models.Author(name=author.name, bio=author.bio)
     db.add(db_author)
     db.commit()

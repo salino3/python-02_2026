@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from app import models
 from app.routers import author_router, book_router
-# .venv\Scripts\Activate.ps1
+
+# .\venv\Scripts\Activate.ps1
 # uvicorn app.main:app --reload  
 # Example   
 # python -m sqlacodegen  postgresql://USER_NAME:PASSWORD_VALUE@localhost:PORT_VALUE/DATABASE_NAME > temp_models.py
