@@ -12,6 +12,7 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
         raise HTTPException(status_code=400, detail="Author name is required")
     if not book_data.title:
         raise HTTPException(status_code=400, detail="Book title is required")
+    
 
     try:
         # 2️⃣ Execute everything inside a shared, atomic transaction block
@@ -22,7 +23,7 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
                 insert(models.Author)
                 .values(name=author_data.name, bio=author_data.bio)
                 .on_conflict_do_update(
-                    constraint="unique_author_name",   # Matches the constraint you ran directly in your DB!
+                    constraint="unique_author_name",   # Matches the constraint ran directly in DB
                     set_={"bio": insert(models.Author).excluded.bio}  # Overwrites the old bio with the fresh search bio
                 )
                 .returning(models.Author.id)  # Forces PostgreSQL to yield the ID back to Python
@@ -41,12 +42,10 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
             )
             db.add(db_book)
             
-            # 🌟 FIX: Return INSIDE the block so everything resolves while the transaction is open and secure!
             return {
                 "success": True, 
                 "message": f"Successfully mapped book '{book_data.title}' to author ID {author_id}."
             }
 
-    except Exception as e:
-        # 🛡️ If the book insertion fails, the entire block—including a new author or updated bio—is completely undone.
-        raise HTTPException(status_code=500, detail=f"Database atomic write aborted: {str(e)}")
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Database atomic write aborted: {str(error)}")
