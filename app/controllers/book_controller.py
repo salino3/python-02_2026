@@ -9,7 +9,10 @@ def create_book(db: Session, book: schemas.BookCreate):
     db_book = models.Book(**book.model_dump())
 
     if not book.title:
-        raise HTTPException(status_code=404, detail="Title is mandatory")
+        raise HTTPException(status_code=400, detail="Title is mandatory")
+    
+    if not book.author_id:
+        raise HTTPException(status_code=400, detail="An 'author_id' must be assigned to this book")
     
     # Convert SQLAlchemy object to something JSON-friendly
     data = jsonable_encoder(db_book)
