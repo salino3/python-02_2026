@@ -3,7 +3,7 @@ from app.database import engine
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from app import models
-from app.routers import author_router, book_router
+from app.routers import author_router, book_router, atomic_services_router
 
 # .\venv\Scripts\Activate.ps1
 # uvicorn app.main:app --reload  
@@ -33,6 +33,7 @@ app.add_middleware(
 # Include routers
 app.include_router(author_router.router)
 app.include_router(book_router.router)
+app.include_router(atomic_services_router.router)
 
 @app.get("/")
 def read_root():
