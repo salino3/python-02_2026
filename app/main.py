@@ -15,10 +15,11 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Library Management System")
 
-FRONT_PORT = os.getenv("FRONT_PORT")
+FRONT_PORT_DEV = os.getenv("FRONT_PORT_DEV")
+FRONT_PORT_PROD = os.getenv("FRONT_PORT_PROD")
 
 origins = [
-    FRONT_PORT,
+    FRONT_PORT_DEV,FRONT_PORT_PROD
  ]
 
 #  Add the middleware to your FastAPI application instance
