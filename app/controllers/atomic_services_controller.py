@@ -1,12 +1,15 @@
 from fastapi import HTTPException
+import os
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 from app import models, schemas   
+from app.utils.whatsapp import send_whatsapp_book_notification
 
  
+prhon_number_client: str = os.getenv("PHONE_NUMBER_ID")
 
-
-def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate, book_data: schemas.BookCreate):
+def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate, book_data: schemas.BookCreate,  user_phone: str =  prhon_number_client):
+                                  
     # 1️⃣ Core Payload Validation
     if not author_data.name:
         raise HTTPException(status_code=400, detail="Author name is required")
@@ -41,6 +44,8 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
                 author_id=author_id  # Relational foreign key link
             )
             db.add(db_book)
+
+            send_whatsapp_book_notification(to_phone=user_phone, book_title=book_data.title)
             
             return {
                 "success": True, 
