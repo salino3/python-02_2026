@@ -44,8 +44,13 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
                 author_id=author_id  # Relational foreign key link
             )
             db.add(db_book)
-        print("number:", user_phone)
-        send_whatsapp_book_notification(to_phone=user_phone, book_title=book_data.title, author_name=author_data.name)
+
+            # 🌟 Forces SQLAlchemy to fetch the generated Book ID 
+            # from PostgreSQL immediately without breaking the transaction state
+            db.flush() 
+            
+         
+        send_whatsapp_book_notification(to_phone=user_phone, book_id=db_book.id, book_title=book_data.title, author_name=author_data.name)
             
         return {
                 "success": True, 

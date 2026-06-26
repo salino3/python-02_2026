@@ -1,10 +1,11 @@
 import os
 import requests
  
+FRONT_PORT_DEV = os.getenv("FRONT_PORT_DEV")
 
-def send_whatsapp_book_notification(to_phone: str, book_title: str, author_name: str):
+def send_whatsapp_book_notification(to_phone: str, book_id: int, book_title: str, author_name: str):
     """
-    An absolute raw replica of the working Meta curl payload.
+    Dispatches a structured notification using the working Meta template blueprint.
     """
     whatsapp_token = os.getenv("WHATSAPP_TOKEN")
     phone_number_id = os.getenv("PHONE_NUMBER_ID")
@@ -13,47 +14,41 @@ def send_whatsapp_book_notification(to_phone: str, book_title: str, author_name:
         print("⚠️ WhatsApp Notification skipped: Missing credentials in .env")
         return False
 
-    # Debug line: Let's see exactly what token python is loading
-    print(f"DEBUG: Using Token starting with: {whatsapp_token[:15]}...")
-    print(f"DEBUG: Using Phone ID: {phone_number_id}")
-
     url = f"https://graph.facebook.com/v25.0/{phone_number_id}/messages"
     
     headers = {
-        "Authorization": f"Bearer {whatsapp_token.strip()}", # .strip() removes accidental spaces
+        "Authorization": f"Bearer {whatsapp_token.strip()}",
         "Content-Type": "application/json",
     }
     
-    # 🌟 BYTE-FOR-BYTE EXACT DUPLICATE OF YOUR WEB CURL JSON PAYLOAD
+    target_catalog_url = f"{FRONT_PORT_DEV}/books?search={book_id}"
+ 
+ 
+    clean_message_text = (
+        f"A new book has arrived in Next App Library!\n\n"
+        f"📖 Book Name: '{book_title}'\n"
+        f"✍️ By the Author: '{author_name}'\n\n"
+        f"🔗 View details at: {target_catalog_url}"
+    )
+
+    
     payload = {
         "messaging_product": "whatsapp",
+        "recipient_type": "individual",
         "to": str(to_phone).strip(),
-        "type": "template",
-        "template": { 
-            "name": "jaspers_market_order_confirmation_v1",
-            "language": { 
-                "code": "en_US" 
-            },
-            "components": [
-                { 
-                    "type": "body", 
-                    "parameters": [
-                        { "type": "text", "text": "Next App Library" }, 
-                        { "type": "text", "text": book_title }, 
-                        { "type": "text", "text": f"By {author_name} - http://localhost:3600/books" }
-                    ] 
-                }
-            ] 
+        "type": "text",
+        "text": {
+            "preview_url": True,  
+            "body": clean_message_text
         }
     }
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=5)
         response.raise_for_status()
-        print(f"✅ WhatsApp alert successfully transmitted!")
+        print(f"✅ WhatsApp dynamic entry alert dispatched for Book ID: {book_id}")
         return True
     except Exception as error:
-        # If it fails, print the full error response body from Meta's server
         if hasattr(error, 'response') and error.response is not None:
             print(f"❌ Meta API Error Response: {error.response.text}")
         else:
