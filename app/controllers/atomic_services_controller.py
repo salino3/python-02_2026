@@ -6,9 +6,9 @@ from app import models, schemas
 from app.utils.whatsapp import send_whatsapp_book_notification
 
  
-prhon_number_client: str = os.getenv("PHONE_NUMBER_ID")
+client_phone_number: str = os.getenv("PHONE_NUMBER_CLIENT")
 
-def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate, book_data: schemas.BookCreate,  user_phone: str =  prhon_number_client):
+def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate, book_data: schemas.BookCreate,  user_phone: str = client_phone_number):
                                   
     # 1️⃣ Core Payload Validation
     if not author_data.name:
@@ -16,7 +16,7 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
     if not book_data.title:
         raise HTTPException(status_code=400, detail="Book title is required")
     
-
+    
     try:
         # 2️⃣ Execute everything inside a shared, atomic transaction block
         with db.begin():
@@ -44,10 +44,10 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
                 author_id=author_id  # Relational foreign key link
             )
             db.add(db_book)
-
-            send_whatsapp_book_notification(to_phone=user_phone, book_title=book_data.title)
+        print("number:", user_phone)
+        send_whatsapp_book_notification(to_phone=user_phone, book_title=book_data.title, author_name=author_data.name)
             
-            return {
+        return {
                 "success": True, 
                 "message": f"Successfully mapped book '{book_data.title}' to author ID {author_id}."
             }
