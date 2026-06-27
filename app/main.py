@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from app.database import engine
+from app import models
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from app import models
 from app.routers import author_router, book_router, atomic_services_router
 
 # .\venv\Scripts\Activate.ps1
