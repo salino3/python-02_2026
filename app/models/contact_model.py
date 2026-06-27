@@ -17,7 +17,7 @@ class Contact(Base):
     tel = Column(String, nullable=True)
     preferred_contact = Column(
         Enum(ContactPreference), 
-        default=ContactPreference.BOTH, 
+        default=ContactPreference.EMAIL, 
         nullable=False
     )
 
