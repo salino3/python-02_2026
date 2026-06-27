@@ -1,4 +1,3 @@
-# app/models.py
 import enum
 from sqlalchemy import Column, Integer, String, Enum, CheckConstraint
 from app.database import Base
@@ -11,20 +10,22 @@ class ContactPreference(str, enum.Enum):
 class Contact(Base):
     __tablename__ = "contacts"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=False)  
     name = Column(String, nullable=False)
     email = Column(String, nullable=True)
     tel = Column(String, nullable=True)
     preferred_contact = Column(
-        Enum(ContactPreference), 
+        Enum(ContactPreference, name="contact_preference_enum"),  
         default=ContactPreference.EMAIL, 
         nullable=False
     )
 
-    # 🌟 SQL Safety Guard: Ensures database rejects rows missing BOTH communication lines
+    # 🛡️ Update Python constraints to match the smart database security guard perfectly!
     __table_args__ = (
         CheckConstraint(
-            "(email IS NOT NULL) OR (tel IS NOT NULL)", 
-            name="at_least_one_contact_method"
+            "(preferred_contact = 'email' AND email IS NOT NULL) OR "
+            "(preferred_contact = 'whatsapp' AND tel IS NOT NULL) OR "
+            "(preferred_contact = 'both' AND email IS NOT NULL AND tel IS NOT NULL)",
+            name="validate_preferred_contact_data"
         ),
     )
