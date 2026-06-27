@@ -50,41 +50,55 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
             db.flush() 
 
             new_book_id = db_book.id
+            # 1️⃣ Pull ALL contact rows from your database table
             active_contacts = db.query(models.Contact).all()
+            print(f"📊 Total rows found in database: {len(active_contacts)}")
 
+            # 2️⃣ Start processing the rows one by one
             for contact in active_contacts:
-              preference = contact.preferred_contact
-            
-            # 📱 Try sending WhatsApp
-            if preference in ["whatsapp", "both"] and contact.tel:
-                try:
-                    print("print01:", )
-                    send_whatsapp_book_notification(
-                        to_phone=contact.tel, 
-                        book_id=new_book_id,
-                        book_title=book_data.title, 
-                        author_name=author_data.name
-                    )
-                except Exception as whatsapp_error:
-                    print(f"⚠️ Failed to send WhatsApp alert to {contact.name}: {whatsapp_error}")
-            
-            # 📧 Try sending Email
-            if preference in ["email", "both"] and contact.email:
-                try:
-                    send_email_book_notification(
-                        destination_email=contact.email,
-                        recipient_name=contact.name, 
-                        book_id=new_book_id,
-                        book_title=book_data.title,
-                        author_name=author_data.name
-                    )
-                except Exception as email_error:
-                    print(f"⚠️ Failed to send Email alert to {contact.name}: {email_error}") 
-        
-            
-        return {
+
+                # Safely convert the database preference value to a lowercase string
+                preference = contact.preferred_contact.value if hasattr(contact.preferred_contact, 'value') else contact.preferred_contact
+                preference = str(preference).lower()
+
+                print(f"👤 Processing row -> Name: {contact.name} | Preference: {preference} | Phone: {contact.tel}")
+
+                # 📱 UTILITY 1: WHATSAPP EXECUTION GUARD
+                # Fires if preference is "whatsapp" OR "both"
+                if preference in ["whatsapp", "both"] and contact.tel:
+                    try:
+                        print(f"   ➔ 📱 Executing WhatsApp utility function for {contact.name}")
+                        send_whatsapp_book_notification(
+                            to_phone=contact.tel, 
+                            book_id=new_book_id,
+                            book_title=book_data.title, 
+                            author_name=author_data.name
+                        )
+                    except Exception as whatsapp_error:
+                        print(f"   ⚠️ WhatsApp utility crashed for {contact.name}: {whatsapp_error}")
+
+                # 📧 UTILITY 2: EMAIL EXECUTION GUARD
+                # Fires if preference is "email" OR "both"
+                if preference in ["email", "both"] and contact.email:
+                    try:
+                        print(f"   ➔ 📧 Executing Email utility function for {contact.name}")
+                        send_email_book_notification(
+                            destination_email=contact.email,
+                            recipient_name=contact.name,
+                            book_id=new_book_id,
+                            book_title=book_data.title,
+                            author_name=author_data.name
+                        )
+                    except Exception as email_error:
+                        print(f"   ⚠️ Email utility crashed for {contact.name}: {email_error}")
+
+                print(f"✨ Finished processing all applicable utilities for {contact.name}.\n")
+ 
+
+ 
+            return {
                 "success": True, 
-                "message": f"Successfully mapped book '{book_data.title}' to author ID {author_id}."
+                "message": f"Successfully processed notifications across all {len(active_contacts)} database contact rows!"
             }
 
     except Exception as error:
