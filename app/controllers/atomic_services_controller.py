@@ -3,7 +3,7 @@ import os
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 from app import models, schemas   
-from app.utils.whatsapp import send_whatsapp_book_notification
+from app.utils import send_whatsapp_book_notification, send_email_book_notification
 
  
 client_phone_number: str = os.getenv("PHONE_NUMBER_CLIENT")
@@ -48,9 +48,38 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
             # 🌟 Forces SQLAlchemy to fetch the generated Book ID 
             # from PostgreSQL immediately without breaking the transaction state
             db.flush() 
+
+            new_book_id = db_book.id
+            active_contacts = db.query(models.Contact).all()
+
+            for contact in active_contacts:
+              preference = contact.preferred_contact
             
-         
-        send_whatsapp_book_notification(to_phone=user_phone, book_id=db_book.id, book_title=book_data.title, author_name=author_data.name)
+            # 📱 Try sending WhatsApp
+            if preference in ["whatsapp", "both"] and contact.tel:
+                try:
+                    send_whatsapp_book_notification(
+                        to_phone=contact.tel, 
+                        book_id=new_book_id,
+                        book_title=book_data.title, 
+                        author_name=author_data.name
+                    )
+                except Exception as whatsapp_error:
+                    print(f"⚠️ Failed to send WhatsApp alert to {contact.name}: {whatsapp_error}")
+            
+            # 📧 Try sending Email
+            if preference in ["email", "both"] and contact.email:
+                try:
+                    send_email_book_notification(
+                        destination_email=contact.email,
+                        recipient_name=contact.name, 
+                        book_id=new_book_id,
+                        book_title=book_data.title,
+                        author_name=author_data.name
+                    )
+                except Exception as email_error:
+                    print(f"⚠️ Failed to send Email alert to {contact.name}: {email_error}") 
+        
             
         return {
                 "success": True, 

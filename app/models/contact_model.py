@@ -3,9 +3,9 @@ from sqlalchemy import Column, Integer, String, Enum, CheckConstraint
 from app.database import Base
 
 class ContactPreference(str, enum.Enum):
-    EMAIL = "email"
-    WHATSAPP = "whatsapp"
-    BOTH = "both"
+    email = "email"       # 👈 Lowercase key matching lowercase value
+    whatsapp = "whatsapp" # 👈 Lowercase key matching lowercase value
+    both = "both"
 
 class Contact(Base):
     __tablename__ = "contacts"
@@ -16,7 +16,7 @@ class Contact(Base):
     tel = Column(String, nullable=True)
     preferred_contact = Column(
         Enum(ContactPreference, name="contact_preference_enum"),  
-        default=ContactPreference.EMAIL, 
+        default=ContactPreference.email, 
         nullable=False
     )
 
