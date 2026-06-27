@@ -8,7 +8,7 @@ from app.utils import send_whatsapp_book_notification, send_email_book_notificat
  
 client_phone_number: str = os.getenv("PHONE_NUMBER_CLIENT")
 
-def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate, book_data: schemas.BookCreate,  user_phone: str = client_phone_number):
+def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate, book_data: schemas.BookCreate   ):
                                   
     # 1️⃣ Core Payload Validation
     if not author_data.name:
@@ -58,6 +58,7 @@ def create_author_and_book_atomic(db: Session, author_data: schemas.AuthorCreate
             # 📱 Try sending WhatsApp
             if preference in ["whatsapp", "both"] and contact.tel:
                 try:
+                    print("print01:", )
                     send_whatsapp_book_notification(
                         to_phone=contact.tel, 
                         book_id=new_book_id,
